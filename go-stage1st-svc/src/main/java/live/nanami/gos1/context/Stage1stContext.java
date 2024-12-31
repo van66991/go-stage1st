@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,6 +87,28 @@ public class Stage1stContext implements InitializingBean {
         }).collect(Collectors.toList());
     }
 
+    public void cleanCachePostToThreshold(int threshold){
+        List<Stage1stPost> sortedPosts = stage1stPostMap.values().stream().sorted(new Comparator<Stage1stPost>() {
+            @Override
+            public int compare(Stage1stPost o1, Stage1stPost o2) {
+                return o1.getPostId().compareTo(o2.getPostId());
+            }
+        }).collect(Collectors.toList());
+        int nowCnt = sortedPosts.size();
+        System.out.println("now Post Count is ["+nowCnt+"] Config threshold is ["+threshold+"]");
+        if (nowCnt > threshold){
+            // 需要清缓存
+            System.out.println("Start Clean Cache...");
+            stage1stPostMap.clear();
+            int startIdx = nowCnt - threshold;
+            List<Stage1stPost> remained = sortedPosts.subList(startIdx, nowCnt - 1);
+            for (Stage1stPost remainedPost : remained) {
+                stage1stPostMap.put(remainedPost.getPostId(),remainedPost);
+            }
+            System.out.println("After Clean Cache Size is ["+stage1stPostMap.size()+"]");
+        }
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         Stage1stService stage1stService = ac.getBean(Stage1stService.class);
@@ -96,6 +119,7 @@ public class Stage1stContext implements InitializingBean {
             public void run() {
                 try {
                     stage1stService.heartbeat_LoginIfNot();
+                    cleanCachePostToThreshold(100);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -106,6 +130,6 @@ public class Stage1stContext implements InitializingBean {
             public void run() {
                 stage1stService.getStage1stPageInfoNewest();
             }
-        },fetchInterval,fetchInterval,TimeUnit.MILLISECONDS);
+        },31000L,fetchInterval,TimeUnit.MILLISECONDS);
     }
 }
