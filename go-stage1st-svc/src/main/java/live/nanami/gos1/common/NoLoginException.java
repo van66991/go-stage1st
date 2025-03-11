@@ -1,6 +1,8 @@
 package live.nanami.gos1.common;
 
 /**
+ * 未登录导致的Ex
+ *
  * @author arichi
  * @since 2024/12/17
  */

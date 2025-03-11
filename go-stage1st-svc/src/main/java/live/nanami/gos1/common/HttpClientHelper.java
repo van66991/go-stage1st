@@ -37,7 +37,7 @@ public class HttpClientHelper {
         }
     }
 
-    public static void closeHttpClientIfCloseable(HttpClient httpClient) {
+    public static void closeHttpClient(HttpClient httpClient) {
         if (null != httpClient) {
             try {
                 if (httpClient instanceof CloseableHttpClient) {

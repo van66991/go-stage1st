@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class JacksonFactory {
 
-    private static volatile ObjectMapper defaultObjectMapper = null;
+    private static volatile ObjectMapper DEFAULT_OBJ_MAPPER = null;
 
-    private static volatile ObjectMapper polymorphicObjectMapper = null;
+    private static volatile ObjectMapper POLYMORPHIC_OBJ_MAPPER = null;
 
     /**
      * 不支持多态性的ObjectMapper。
@@ -23,11 +23,11 @@ public final class JacksonFactory {
      *
      * @return ObjectMapper
      */
-    public static ObjectMapper getDefaultObjectMapper() {
-        if (defaultObjectMapper == null) {
-            defaultObjectMapper = new ObjectMapper();
+    public static ObjectMapper getDefaultObjMapper() {
+        if (DEFAULT_OBJ_MAPPER == null) {
+            DEFAULT_OBJ_MAPPER = new ObjectMapper();
         }
-        return defaultObjectMapper;
+        return DEFAULT_OBJ_MAPPER;
     }
 
     /**
@@ -37,13 +37,13 @@ public final class JacksonFactory {
      *
      * @return ObjectMapper
      */
-    public static ObjectMapper getPolymorphicObjectMapper() {
-        if (polymorphicObjectMapper == null) {
-            polymorphicObjectMapper = new ObjectMapper()
+    public static ObjectMapper getPolymorphicObjMapper() {
+        if (POLYMORPHIC_OBJ_MAPPER == null) {
+            POLYMORPHIC_OBJ_MAPPER = new ObjectMapper()
                     .enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-            polymorphicObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            POLYMORPHIC_OBJ_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         }
-        return polymorphicObjectMapper;
+        return POLYMORPHIC_OBJ_MAPPER;
     }
 
 }

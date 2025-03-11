@@ -37,4 +37,5 @@ public interface PushService {
 
     int push(List<Pushable> msgPackage, Integer threshold);
 
+    void pushAll(List<Pushable> msgs);
 }

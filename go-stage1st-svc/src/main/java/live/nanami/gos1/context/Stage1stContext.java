@@ -12,6 +12,7 @@ import org.apache.http.client.CookieStore;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 
@@ -44,6 +45,9 @@ public class Stage1stContext implements InitializingBean {
 
     @Autowired
     private ScheduledExecutorService scheduledExecutorService;
+
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
     ApplicationContext ac;
@@ -118,7 +122,7 @@ public class Stage1stContext implements InitializingBean {
             @Override
             public void run() {
                 try {
-                    stage1stService.heartbeat_LoginIfNot();
+                    stage1stService.heartbeat();
                     cleanCachePostToThreshold(100);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -128,7 +132,7 @@ public class Stage1stContext implements InitializingBean {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                stage1stService.getStage1stPageInfoNewest();
+                stage1stService.getStage1stPageInfoByConfig();
             }
         },31000L,fetchInterval,TimeUnit.MILLISECONDS);
     }

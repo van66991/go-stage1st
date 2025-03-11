@@ -3,14 +3,21 @@ package live.nanami.gos1.common;
 import lombok.Data;
 
 /**
- * 代理
+ * 代理信息
  *
  * @author takumi
  * @since 2024/11/27
  */
 @Data
 public class ProxyVO {
+    /**
+     * ip地址
+     */
     private String ip;
+
+    /**
+     * 端口
+     */
     private String port;
 
     /**
@@ -18,9 +25,23 @@ public class ProxyVO {
      * 0-活跃 1-死亡
      */
     private String status;
+
+    /**
+     * 所在国家
+     */
     private String country;
+
+    /**
+     * 所在省
+     */
     private String province;
+
+    /**
+     * 所在市
+     */
     private String city;
+
+
     private String isp;
 
     private String anonymity;

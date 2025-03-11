@@ -16,9 +16,9 @@ public enum CodeType {
     DEFAULT_FAIL(9001,"服务端未知异常，联系开发者查看后台日志。"),
     ;
 
-    private int code;
+    private final int code;
 
-    private String message;
+    private final String message;
 
     CodeType(int code, String message) {
         this.code = code;

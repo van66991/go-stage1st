@@ -88,10 +88,10 @@ public class MyStringUtil {
             StringBuilder binaryString = new StringBuilder();
             for (byte b : addressBytes) {
                 // 将每个字节转换为二进制字符串
-                String binary = Integer.toBinaryString(b & 255);
+                StringBuilder binary = new StringBuilder(Integer.toBinaryString(b & 255));
                 while (binary.length() < 8) {
                     // 将二进制字符串补足8位
-                    binary = "0" + binary;
+                    binary.insert(0, "0");
                 }
                 binaryString.append(binary);
                 binaryString.append(".");
@@ -110,13 +110,17 @@ public class MyStringUtil {
      * @return eg:255.255.248.0
      */
     public static String binaryIpv42Dec(String binaryIpv4) {
-        String[] binaryOctets = binaryIpv4.split("\\."); // 将二进制形式的IPv4地址按照"."分割成4个子串
+        // 将二进制形式的IPv4地址按照"."分割成4个子串
+        String[] binaryOctets = binaryIpv4.split("\\.");
         StringBuilder ipAddress = new StringBuilder();
         for (String binaryOctet : binaryOctets) {
-            int decimalValue = Integer.parseInt(binaryOctet, 2); // 将每个子串转换为10进制整数
-            ipAddress.append(decimalValue).append("."); // 将每个整数拼接起来
+            // 将每个子串转换为10进制整数
+            int decimalValue = Integer.parseInt(binaryOctet, 2);
+            // 将每个整数拼接起来
+            ipAddress.append(decimalValue).append(".");
         }
-        ipAddress.deleteCharAt(ipAddress.length() - 1); // 删除最后一个"."
+        // 删除最后一个"."
+        ipAddress.deleteCharAt(ipAddress.length() - 1);
         return ipAddress.toString();
     }
 
@@ -132,15 +136,19 @@ public class MyStringUtil {
         int c = a & b;
         String binary = Integer.toBinaryString(c);
         while (binary.length() < 8) {
-            binary = "0" + binary; // 将二进制字符串补足8位
+            // 将二进制字符串补足8位
+            binary = "0" + binary;
         }
         return binary;
     }
 
     public static boolean isValidCIDRAddress(String cidrAddress) {
-        String ipRegex = "(\\d{1,3}\\.){3}\\d{1,3}"; // IP地址的正则表达式
-        String subnetMaskRegex = "/([1-9]|[1-2]\\d|3[0-2])"; // 子网掩码长度的正则表达式
-        String cidrRegex = ipRegex + subnetMaskRegex; // CIDR格式的正则表达式
+        // IP地址的正则表达式
+        String ipRegex = "(\\d{1,3}\\.){3}\\d{1,3}";
+        // 子网掩码长度的正则表达式
+        String subnetMaskRegex = "/([1-9]|[1-2]\\d|3[0-2])";
+        // CIDR格式的正则表达式
+        String cidrRegex = ipRegex + subnetMaskRegex;
         return cidrAddress.matches(cidrRegex);
     }
 

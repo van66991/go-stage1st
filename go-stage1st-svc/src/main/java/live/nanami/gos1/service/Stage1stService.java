@@ -13,14 +13,38 @@ import live.nanami.gos1.vo.Stage1stPost;
  */
 public interface Stage1stService {
 
-    void heartbeat_LoginIfNot();
+    String LOG_TAG = "[S1]";
 
+    /**
+     * 发送心跳
+     */
+    void heartbeat();
+
+    /**
+     * 登录S1
+     */
     void loginStage1st();
 
+    /**
+     * 获得某一版面（某楼某页）的信息
+     *
+     * @param param 参数集
+     * @return 成功与否
+     */
     SimpleRsp getStage1stPageInfo(GetStage1stPageInfoParam param);
 
-    SimpleRsp getStage1stPageInfoNewest();
+    /**
+     * 用配置中的楼号和页数获得信息
+     *
+     * @return 成功与否
+     */
+    SimpleRsp getStage1stPageInfoByConfig();
 
-    void processParsedS1Post(Stage1stPost post);
+    /**
+     * 处理S1帖子
+     *
+     * @param post
+     */
+    void processS1Post(Stage1stPost post);
 
 }

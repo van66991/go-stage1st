@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -127,5 +128,34 @@ public class ServerChanPushServiceImpl implements PushService {
     @Override
     public int push(List<Pushable> list){
         return push(list,5);
+    }
+
+    @Override
+    public void pushAll(List<Pushable> msgs) {
+        // todo 其实就是serverChan接口的内容有个长度限制， 现在这么做好像妈的有同步问题， 而且是写死5条消息，太不智能了
+        ThreadPoolTaskExecutor tpte = context.getThreadPoolTaskExecutor();
+        int size = msgs.size();
+        if (size > 5) {
+            int pushTimes = size / 5 + 1;
+            for (int i = 0; i < pushTimes; i++) {
+//                tpte.submit(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        push(msgs);
+//                    }
+//                });
+                // todo 先改成串行 不用线程池
+                push(msgs);
+            }
+        } else {
+//            tpte.submit(new Runnable() {
+//                @Override
+//                public void run() {
+//                    push(msgs);
+//                }
+//            });
+            // todo 先改成串行 不用线程池
+            push(msgs);
+        }
     }
 }

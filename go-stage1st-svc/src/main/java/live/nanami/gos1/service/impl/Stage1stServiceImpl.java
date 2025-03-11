@@ -21,6 +21,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class Stage1stServiceImpl implements Stage1stService {
 
+    Logger logger = LoggerFactory.getLogger(getClass());
+
+
     @Autowired
     Stage1stContext context;
 
@@ -49,9 +54,9 @@ public class Stage1stServiceImpl implements Stage1stService {
     PushService pushService;
 
     @Override
-    public void heartbeat_LoginIfNot() {
+    public void heartbeat() {
         try {
-            System.out.println("start heartbeat_LoginIfNot...");
+            logger.info("{} Heartbeat...",LOG_TAG);
             SimpleRsp rsp = getStage1stPageInfo(GetStage1stPageInfoParam.builder()
                     .needDispatch(false)
                     .buildingNum(context.getS1Config().getBuildingNum())
@@ -60,14 +65,14 @@ public class Stage1stServiceImpl implements Stage1stService {
             if (!rsp.isSuccess()){
                 if (CodeType.NO_LOGIN.getCode() == rsp.getCode()) {
                     loginStage1st();
-                    System.out.println("heartbeat NOT LOGIN, LOGINNOW...");
+                    logger.info("{} Heartbeat find NOT_LOGIN, login now...",LOG_TAG);
                 }
-                System.out.println("heartbeat NOT GOOD...");
+                logger.info("{} Heartbeat NOT_GOOD...",LOG_TAG);
             } else {
-                System.out.println("heartbeat OK...");
+                logger.info("{} Heartbeat OK...",LOG_TAG);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("{} Heartbeat NOT_GOOD...",LOG_TAG,e);
         }
     }
 
@@ -124,7 +129,7 @@ public class Stage1stServiceImpl implements Stage1stService {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            HttpClientHelper.closeHttpClientIfCloseable(httpClient);
+            HttpClientHelper.closeHttpClient(httpClient);
         }
     }
 
@@ -141,7 +146,7 @@ public class Stage1stServiceImpl implements Stage1stService {
         String pageNum = param.getPageNum();
         String buildingNum = param.getBuildingNum();
         try {
-            System.out.println("start getStage1stPageInfo...");
+            logger.info("{} Start getStage1stPageInfo...",LOG_TAG);
             URI targetURI = new URIBuilder(String.format(Stage1stConstant.FMT_URL_STAGE1ST_POST_INFO,buildingNum,pageNum)).build();
             // 创建HttpClient实例 带Cookie
             CookieStore cookieStore = context.selectCookieStore(targetURI);
@@ -164,9 +169,8 @@ public class Stage1stServiceImpl implements Stage1stService {
             // 处理响应
             String rspBodyString = EntityUtils.toString(rsp.getEntity());
 
-
             Document parsedDoc = Jsoup.parse(rspBodyString);
-            System.out.println("success parsed HTML to Document...");
+            logger.info("{} success parsed HTML to Document...",LOG_TAG);
 
             Element postlist = parsedDoc.getElementById("postlist");
             if (postlist == null) {
@@ -182,15 +186,10 @@ public class Stage1stServiceImpl implements Stage1stService {
                 for (Element post : posts) {
                     processPostHttpElement(post);
                 }
-                threadPoolTaskExecutor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        pushService.push(context.getS1PostListToPush());
-                    }
-                });
+                pushService.pushAll(context.getS1PostListToPush());
             }
-            System.out.println("Response Code: " + rsp.getStatusLine().getStatusCode());
             // 太长了 注了
+//            System.out.println("Response Code: " + rsp.getStatusLine().getStatusCode());
 //            System.out.println("Response Body: " + rspBodyString);
             return SimpleRsp.success();
         } catch (NoLoginException e) {
@@ -201,12 +200,12 @@ public class Stage1stServiceImpl implements Stage1stService {
             e.printStackTrace();
             return SimpleRsp.defaultFail();
         } finally {
-            HttpClientHelper.closeHttpClientIfCloseable(httpClient);
+            HttpClientHelper.closeHttpClient(httpClient);
         }
     }
 
     @Override
-    public SimpleRsp getStage1stPageInfoNewest() {
+    public SimpleRsp getStage1stPageInfoByConfig() {
         GetStage1stPageInfoParam param = GetStage1stPageInfoParam.builder()
                 .buildingNum(context.getS1Config().getBuildingNum())
                 .pageNum(context.getS1Config().getPageNo())
@@ -216,7 +215,7 @@ public class Stage1stServiceImpl implements Stage1stService {
     }
 
     @Override
-    public void processParsedS1Post(Stage1stPost parsed) {
+    public void processS1Post(Stage1stPost parsed) {
         Map<String, Stage1stPost> stage1stPostMap = context.getStage1stPostMap();
         String postId = parsed.getPostId();
         if (stage1stPostMap.containsKey(postId)){
@@ -265,7 +264,7 @@ public class Stage1stServiceImpl implements Stage1stService {
                     .mdContent(MyHttpUtil.getMarkdown(htmlContent))
                     .build();
             System.out.println(stage1stPost.getClass().getSimpleName() + " ==> " + stage1stPost);
-            processParsedS1Post(stage1stPost);
+            processS1Post(stage1stPost);
         } catch (Exception e) {
             e.printStackTrace();
         }
